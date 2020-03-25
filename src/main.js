@@ -31,12 +31,14 @@ Vue.config.productionTip = false
 Vue.prototype.$bus = new Vue()
 
  window.axios = axios.create({
-        baseURL: '',
-        params : {
-          token : false
-        },
-        headers: {'Authorization': ""}
-        });
+    baseURL: 'https://geoquizzapi.000webhostapp.com/',
+    params : {
+      token : false
+    },
+    headers: {
+      Authorization: ""
+    }
+});
 
 
 new Vue({

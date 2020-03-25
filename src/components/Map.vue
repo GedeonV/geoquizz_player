@@ -17,7 +17,14 @@
 			<l-control position="topright">
 				<div class="card">
 					<div class="card-content">
-						<p>Round: {{round}} / 10</p>
+						<p>Round: {{round}} / {{numberOfRound}}</p>
+					</div>
+				</div>
+			</l-control>
+			<l-control position="bottomleft">
+				<div class="card">
+					<div class="card-content">
+						<p>Time: {{minutes}}:{{seconds}}</p>
 					</div>
 				</div>
 			</l-control>
@@ -42,7 +49,6 @@
 			  	<div class="modal-card">
 				    <header class="modal-card-head">
 				      <p class="modal-card-title">Partie finie !</p>
-				      <button class="delete" @click="closeModal" aria-label="close"></button>
 				    </header>
 				    <section class="modal-card-body">
 				    	<p>Votre score final est de <span>{{totalScore}}pt</span></p>
@@ -55,7 +61,8 @@
 				    	</ul>
 				    </section>
 				    <footer class="modal-card-foot">
-				      <button @click="goLeaderboard()" class="button is-success">Classement</button>
+				      <button @click="goLeaderboard()" class="button is-success">Envoyer score</button>
+				      <button  @click="restart()" class="button is-primary">Rejouer</button>
 				    </footer>
 				  </div>
 			  </div>
@@ -80,7 +87,7 @@
 				console.log(event.latlng)
 				if(this.markers.length < 1){
 					this.markers.push(event.latlng)
-				} else {
+				} else if(this.markers.length != 2) {
 					this.markers.pop()
 					this.markers.push(event.latlng)
 				}
@@ -88,21 +95,59 @@
 			removeMarker(index){
 				this.markers.splice(index, 1)
 			},
+			checkDifficulty(){
+				if(this.$store.state.difficulty == 1){
+					console.log("Difficulté: FACILE")
+					this.currentGame.difficulty = 1
+					this.numberOfRound = 10
+					this.bestTime = 60
+				} else if (this.$store.state.difficulty == 2){
+					console.log("Difficulté: NORMAL")
+					this.currentGame.difficulty = 2
+					this.numberOfRound = 15
+					this.bestTime = 40
+				} else if (this.$store.state.difficulty == 3){
+					console.log("Difficulté DIFFICILE")
+					this.currentGame.difficulty = 3
+					this.numberOfRound = 20
+					this.bestTime = 20
+				}
+			},
+			checkMatchDetail(){
 
+			},
+			restart(){
+				this.isActive = false
+				this.finalScore = []
+				this.$store.commit('continue_game')
+				this.startRound()
+			},
 			startRound(){
+				this.seconds = 0
+				this.minutes = 0
 				clearInterval(this.refresh)
+				this.timer = setInterval(() => {
+					this.seconds += 1
+					if(this.seconds == 60){
+						this.minutes += 1
+						this.seconds = 0
+					}  
+				}, 1000)
 				this.round += 1 
-				if(this.round == 3){ 
+				this.currentGame.round = this.round
+				if(this.round == (this.numberOfRound + 1) ){ 
 					this.round = 0
 					this.getScoreFinal()
 					//this.$router.push('/leaderboard')
 					this.isActive = true;
+					this.$store.commit('finish_game')
 				}
 
 				console.log("Round: " + this.round)
 				let json = require('../json/NancyLocation.json')
 				console.log(json.possibleLocation)
 				this.roundLocation = json.possibleLocation[Math.floor(Math.random() * json.possibleLocation.length)];
+				this.currentGame.photo = this.roundLocation
 				this.startTime = new Date()
 				console.log(this.startTime)
 				this.zoom = 12
@@ -110,8 +155,17 @@
 			    this.markers = []
 			    this.roundEnd = false 
 			    this.roundScore = 0
-			    this.countdown = 20
-
+			    this.countdown = 5
+			    this.currentGame.score = this.finalScore
+			    if(this.$store.state.status == 1){
+			    	this.$store.commit('currentGame', this.currentGame)
+			    } 
+			    else if(this.$store.state.status == 2){
+			    	this.round = this.$store.state.currentRound
+			    	this.finalScore = this.$store.state.currentScore
+			    	this.roundLocation = this.$store.state.currentPhoto 
+			    	this.$store.commit('continue_game')
+			    }
 			},
 
 			getDistance(){
@@ -139,6 +193,7 @@
 			},
 
 			getScore(d){
+				clearInterval(this.timer)
 				let endTime = new Date()
 				let timeDiff = endTime - this.startTime
 				timeDiff /= 1000
@@ -151,14 +206,14 @@
 				}
 				console.log(score)
 
-				if(timeSeconds <=  50){
+				if(timeSeconds <=  this.bestTime){
 					this.roundScore = score * 4
-				} else if (timeSeconds <= 100){
+				} else if (timeSeconds <= (this.bestTime*2)){
 					this.roundScore = score * 2
-				} else if (timeSeconds >= 100)
+				} else if (timeSeconds >= (this.bestTime*2))
 					this.roundScore = score
 				console.log(this.roundScore)
-				if(this.finalScore.length <= 10 ){
+				if(this.finalScore.length <= this.numberOfRound ){
 					this.finalScore.push(this.roundScore)
 				}
 				this.refresh = setInterval(() => {
@@ -173,9 +228,6 @@
 				this.finalScore.forEach((item) => {
 					this.totalScore += item
 				})
-			},
-			closeModal(){
-				this.isActive = false
 			},
 			goLeaderboard(){
 				this.$router.push('/leaderboard')
@@ -202,9 +254,15 @@
 				roundScore : 0,
 				finalScore : [],
 				totalScore: 0,
-				countdown : 20,
+				countdown : 5,
 				refresh : null,
-				isActive: false, 
+				isActive: false,
+				numberOfRound : 0, 
+				bestTime : 0,
+				timer: null,
+				seconds: 0,
+				minutes : 0,
+				currentGame: {}
 			}
 		},
 		watch:{
@@ -213,6 +271,8 @@
 		    }
 		}, 		
 		mounted(){
+			this.checkDifficulty()
+			this.checkMatchDetail()
 			if(this.round == 0){
 				this.startRound()
 			}
