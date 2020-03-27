@@ -1,6 +1,6 @@
 <template>
 	<div class="container">
-		<div class="card">
+		<div class="card" style="margin-top: 1em">
 			<div class="card-content">
 				<div class="field is-grouped">
 				<label class="label">Nom </label>
@@ -38,9 +38,7 @@
 				  <p class="control has-icons-left">
 				    <span class="select">
 				      <select v-model="match">
-				        <option selected>Nancy</option>
-				        <option>Metz</option>
-				        <option>Epinal</option>
+				        <option v-for="option in series" :value="option">{{option.ville}}</option>
 				      </select>
 				    </span>
 				    	<span class="icon is-small is-left">
@@ -85,18 +83,26 @@
 				data.player_name = this.player_name
 				data.difficulty = this.difficulty
 				data.match = this.match
+				this.gameID = this.match.id
 				this.$store.commit('game_details', data)
+				let data2 = {}
+				data.pseudo = this.player_name
+				axios.post('game',data2).then(response => {
+					console.log(response.data)
+				})
 			},
 			resume(){
+				this.gameID = this.$store.state.match.id
 				this.$store.commit('resume_game')
 			}
 		}, 
 		data(){
 			return {
-				gameID : 1234, 
+				gameID : 0, 
 				difficulty: "1",
-				match : "Nancy",
-				player_name : ""
+				match : null,
+				player_name : "",
+				series : {}
 			}
 		},
 		watch:{
@@ -107,10 +113,10 @@
 		mounted(){
 			axios.get('series')
 			.then(response => {
-				console.log(response)
-			}).catch(error => {
-				console.log(error.response)
+				console.log(response.data.series)
+				this.series = response.data.series
 			})
+			
 		}
 	}
 </script>

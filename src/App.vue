@@ -1,11 +1,26 @@
 <template>
   <div id="app">
-    <div id="nav">
-      <router-link  to="/">Home</router-link> |
-      <router-link  to="/play">Play</router-link> |
-      <router-link  to="/leaderboard">Leaderboard</router-link> | 
-      <router-link to="/about">About</router-link>
-    </div>
+   <div id="nav">
+      <nav class="navbar">
+          <div class="navbar-brand">
+            <a class="navbar-item">
+              <img src="./assets/logo.png" width="64" height="100">
+            </a>
+            <a role="button" class="navbar-burger burger" aria-label="menu" aria-expanded="false" data-target="navbarBasicExample">
+              <span aria-hidden="true"></span>
+              <span aria-hidden="true"></span>
+              <span aria-hidden="true"></span>
+            </a>
+          </div>
+          <div class="navbar-menu">
+            <div class="navbar-start">
+              <router-link class="navbar-item" to="/">Accueil</router-link> 
+              <router-link  class="navbar-item" to="/play">Jouer</router-link> 
+              <router-link  class="navbar-item" to="/leaderboard">Classement</router-link>
+           </div> 
+          </div>
+      </nav>
+    </div> 
     <router-view/>
   </div>
 </template>
@@ -37,17 +52,25 @@
 }
 
 #nav {
-  padding: 30px;
+  position: sticky;
+  top: 0px;
+  border-bottom: 1px solid $color1;
+  z-index: 1000000;
 }
 
-#nav a {
-  font-weight: bold;
-  color: #2c3e50;
+.navbar-item img {
+  max-height: none !important;
 }
 
-#nav a.router-link-exact-active {
-  color: #42b983;
+.navbar-item:hover {
+ color: $color1 !important;
 }
+
+.router-link-exact-active {
+  color: $color1 !important;
+}
+
+
 </style>
 
 

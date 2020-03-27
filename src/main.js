@@ -36,8 +36,8 @@ Vue.prototype.$bus = new Vue()
       token : false
     },
     headers: {
-      Authorization: ""
-    }
+
+    },
 });
 
 

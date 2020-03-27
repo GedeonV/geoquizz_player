@@ -6,7 +6,7 @@
 				<div class="card">
 					<div class="card-image">
 						<figure class="image is-4by3">
-							<img :src="`./medias/${roundLocation.img}`" alt="photo">
+							<img :src="`./medias/${roundLocation.url}.jpg`" alt="photo">
 						</figure>
 					</div>
 					<footer class="card-footer">
@@ -114,7 +114,7 @@
 				}
 			},
 			checkMatchDetail(){
-
+				this.center = [this.$store.state.match.latitude,this.$store.state.match.longitude]
 			},
 			restart(){
 				this.isActive = false
@@ -141,21 +141,36 @@
 					//this.$router.push('/leaderboard')
 					this.isActive = true;
 					this.$store.commit('finish_game')
+					let data = {}
+					data.score = this.totalScore
+					data.status = 3
+					axios.put('game/'+this.$route.params.id,data).then(response => {
+						console.log(response.data)
+					})
 				}
 
 				console.log("Round: " + this.round)
-				let json = require('../json/NancyLocation.json')
-				console.log(json.possibleLocation)
-				this.roundLocation = json.possibleLocation[Math.floor(Math.random() * json.possibleLocation.length)];
-				this.currentGame.photo = this.roundLocation
+				//let json = require('../json/NancyLocation.json')
+				//console.log(json.possibleLocation)
+				//this.roundLocation = json.possibleLocation[Math.floor(Math.random() * json.possibleLocation.length)];
+				axios.get('serie/'+this.$route.params.id+'/picture')
+				.then(response => {
+					console.log(response.data)
+					this.roundLocation = response.data.photos[Math.floor(Math.random() * response.data.photos.length)]
+					this.currentGame.photo = this.roundLocation
+				})
+				
 				this.startTime = new Date()
 				console.log(this.startTime)
+				
 				this.zoom = 12
-			    this.center =  [48.68852651517118, 6.174659729003907],
+			    this.center =  [this.$store.state.match.latitude,this.$store.state.match.longitude],
 			    this.markers = []
 			    this.roundEnd = false 
 			    this.roundScore = 0
 			    this.countdown = 5
+
+
 			    this.currentGame.score = this.finalScore
 			    if(this.$store.state.status == 1){
 			    	this.$store.commit('currentGame', this.currentGame)
@@ -172,7 +187,7 @@
 				if (this.markers.length > 0){
 					let position1 = this.markers[0]
 					console.log(position1)
-					let position2 = this.roundLocation
+					let position2 = {"lat": this.roundLocation.latitude,"lng": this.roundLocation.longitude}
 					console.log(position2)
 					let distance = position1.distanceTo(position2)
 					this.dist = (Math.round(distance*100)/100).toString()
@@ -184,7 +199,7 @@
 						console.log(position1.distanceTo(position2) + ' Meter')
 						this.dist += " Meter"
 					}
-					this.markers.push(this.roundLocation)
+					this.markers.push(position2)
 					this.roundEnd = true
 					this.getScore(distance)
 				} else {
@@ -238,7 +253,7 @@
 			return {
 				url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
 			    zoom: 12,
-			    center: [48.68852651517118, 6.174659729003907],
+			    center: [0,0],
 			    bounds: null,
 			    markers: [],
 
