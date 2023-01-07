@@ -22,7 +22,7 @@
   "devDependencies": {
     "@vue/cli-plugin-router": "~4.2.0",
     "@vue/cli-plugin-vuex": "~4.2.0",
-    "@vue/cli-service": "~4.2.0",
+    "@vue/cli-service": "~5.0.8",
     "bulma": "^0.8.0",
     "bulma-scss": "^0.8.0",
     "node-sass": "^4.13.1",
